@@ -1,4 +1,12 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {
+    // ==============================
+    // 🌍 CONFIGURACIÓN DE AMBIENTE
+    // ==============================
+    const API_BASE_URL =
+        window.location.hostname === "localhost"
+            ? "http://localhost:5000"
+            : "https://adminresidencial-dmbvd0fdcfd6h9aw.chilecentral-01.azurewebsites.net";
+
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
     const updateInfoForm = document.getElementById("updateInfoForm");
@@ -14,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const password = document.getElementById("password").value;
 
             try {
-                const response = await fetch("http://localhost:5000/api/usuarios/login", {
+                const response = await fetch(`${API_BASE_URL}/api/usuarios/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ cedula, password })
@@ -52,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             try {
-                const response = await fetch("http://localhost:5000/api/usuarios/crear", {
+                const response = await fetch(`${API_BASE_URL}/api/usuarios/crear`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(usuarioData)
@@ -79,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const id = localStorage.getItem("id");
 
         try {
-            const response = await fetch(`http://localhost:5000/api/usuarios/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/usuarios/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -102,54 +110,56 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-  // ---------------- REGISTRAR VISITANTE ----------------
-visitanteForm?.addEventListener("submit", async function (event) {
-    event.preventDefault();
+    // ---------------- REGISTRAR VISITANTE ----------------
+    visitanteForm?.addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-    const rol = localStorage.getItem("rol");
+        const rol = localStorage.getItem("rol");
 
-    const visitanteData = {
-        placaVisitante: document.getElementById("placaVisitante").value,
-        cedulaVisitante: document.getElementById("cedulaVisitante").value,
-        nombreVisitante: document.getElementById("nombreVisitante").value,
-        apellidoVisitante: document.getElementById("apellidoVisitante").value,
-        residenteId: rol === "admin" ? "admin" : localStorage.getItem("id") // 👈 Aquí el cambio
-    };
+        const visitanteData = {
+            placaVisitante: document.getElementById("placaVisitante").value,
+            cedulaVisitante: document.getElementById("cedulaVisitante").value,
+            nombreVisitante: document.getElementById("nombreVisitante").value,
+            apellidoVisitante: document.getElementById("apellidoVisitante").value,
+            residenteId: rol === "admin" ? "admin" : localStorage.getItem("id")
+        };
 
-    try {
-        const response = await fetch("http://localhost:5000/api/visitantes", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify(visitanteData)
-        });
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/visitantes`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify(visitanteData)
+            });
 
-        const data = await response.json();
-        if (response.ok) {
-            alert("✅ Visitante registrado con éxito");
-            visitanteForm.reset();
-            if (rol === "residente") {
-                cargarVisitantes(); // refrescar lista solo si es residente
+            const data = await response.json();
+            if (response.ok) {
+                alert("✅ Visitante registrado con éxito");
+                visitanteForm.reset();
+                if (rol === "residente") {
+                    cargarVisitantes();
+                } else {
+                    listarUsuariosPorRol("visitante", "listaVisitantes", "paginacionVisitantes");
+                }
             } else {
-                listarUsuariosPorRol("visitante","listaVisitantes","paginacionVisitantes"); // refrescar lista en admin
+                alert("❌ Error al registrar visitante: " + (data.msg || data.error));
             }
-        } else {
-            alert("❌ Error al registrar visitante: " + (data.msg || data.error));
+        } catch (error) {
+            console.error("❌ Error al registrar visitante:", error);
+            alert("❌ Error al conectar con el servidor");
         }
-    } catch (error) {
-        console.error("❌ Error al registrar visitante:", error);
-        alert("❌ Error al conectar con el servidor");
-    }
-});
+    });
 
+    // ==============================
+    // 🧍 FUNCIONES DE USUARIO Y ADMIN
+    // ==============================
 
-   // ---------------- LISTAR VISITANTES ----------------
-   async function cargarVisitantes() {
+    async function cargarVisitantes() {
         const residenteId = localStorage.getItem("id");
         try {
-            const response = await fetch(`http://localhost:5000/api/visitantes/misVisitantes/${residenteId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/visitantes/misVisitantes/${residenteId}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
             const data = await response.json();
@@ -176,235 +186,6 @@ visitanteForm?.addEventListener("submit", async function (event) {
             console.error("Error al cargar visitantes:", error);
         }
     }
-
-    // ---------------- EDITAR VISITANTE ----------------
-    window.abrirEditarVisitante = function (id, nombre, apellido, cedula, placa) {
-        document.getElementById("editVisitanteId").value = id;
-        document.getElementById("editNombre").value = nombre;
-        document.getElementById("editApellido").value = apellido;
-        document.getElementById("editCedula").value = cedula;
-        document.getElementById("editPlaca").value = placa;
-        document.getElementById("editarModal").style.display = "block";
-    };
-
-    window.cerrarEditarModal = function () {
-        document.getElementById("editarModal").style.display = "none";
-    };
-
-    document.getElementById("editarVisitanteForm")?.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        const visitanteId = document.getElementById("editVisitanteId").value;
-        const visitanteData = {
-            nombre: document.getElementById("editNombre").value,
-            apellido: document.getElementById("editApellido").value,
-            cedula: document.getElementById("editCedula").value,
-            placaVehiculo: document.getElementById("editPlaca").value
-        };
-
-        try {
-            const response = await fetch(`http://localhost:5000/api/visitantes/editarVisitante/${visitanteId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                },
-                body: JSON.stringify(visitanteData)
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                alert("✅ Visitante actualizado con éxito");
-                cerrarEditarModal();
-                cargarVisitantes();
-            } else {
-                alert("❌ Error: " + (data.msg || data.mensaje || "No se pudo actualizar"));
-            }
-        } catch (error) {
-            console.error("Error al actualizar visitante:", error);
-        }
-    });
-
-    // ---------------- ELIMINAR VISITANTE ----------------
-    window.eliminarVisitante = async function (residenteId, visitanteId) {
-        if (!confirm("¿Seguro que deseas eliminar este visitante?")) return;
-        try {
-            const response = await fetch(`http://localhost:5000/api/visitantes/eliminarVisitante/${residenteId}/${visitanteId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-            const data = await response.json();
-            if (response.ok) {
-                alert("✅ Visitante eliminado y plaza liberada");
-                cargarVisitantes();
-            } else {
-                alert("❌ Error: " + (data.msg || data.mensaje || "No se pudo eliminar"));
-            }
-        } catch (error) {
-            console.error("Error al eliminar visitante:", error);
-        }
-    };
-
-    // ---------------- FUNCIONES ADMIN ----------------
-    async function listarUsuariosPorRol(rol, listaId, paginacionId, pagina = 1) {
-        const lista = document.getElementById(listaId);
-        const paginacion = document.getElementById(paginacionId);
-        if (!lista) return;
-        lista.innerHTML = "<h3>Cargando...</h3>";
-        paginacion.innerHTML = "";
-
-        try {
-            const response = await fetch("http://localhost:5000/api/usuarios", {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            });
-
-            if (!response.ok) throw new Error("Error al obtener usuarios");
-
-            const data = await response.json();
-            let filtrados = data.data.filter(user => user.rol === rol);
-
-            const usuariosPorPagina = 20;
-            const totalPaginas = Math.ceil(filtrados.length / usuariosPorPagina);
-            const inicio = (pagina - 1) * usuariosPorPagina;
-            const fin = inicio + usuariosPorPagina;
-            const usuariosPagina = filtrados.slice(inicio, fin);
-
-            lista.innerHTML = "";
-            usuariosPagina.forEach(user => {
-                lista.innerHTML += `
-                    <div class="usuario-item">
-                        <p><strong>${user.nombre} ${user.apellido || ""}</strong> - 
-                        Cédula: ${user.cedula || "N/A"}, Placa: ${user.placaVehiculo || "N/A"}</p>
-                        <!-- pasar también el rol al abrir el modal -->
-                        <button class="btn-azul-sm" onclick="abrirEditarUsuario('${user.id}','${user.nombre}','${user.apellido}','${user.cedula}','${user.placaVehiculo || ""}','${user.rol || ''}')">Editar</button>
-                        <button class="btn-rojo-sm" onclick="eliminarEntidad('${user.id}', '${user.tipo}')">Eliminar</button>
-                    </div>
-                `;
-            });
-
-            if (pagina > 1) {
-                paginacion.innerHTML += `<button onclick="listarUsuariosPorRol('${rol}','${listaId}','${paginacionId}', ${pagina - 1})">Anterior</button>`;
-            }
-            paginacion.innerHTML += ` Página ${pagina} de ${totalPaginas} `;
-            if (pagina < totalPaginas) {
-                paginacion.innerHTML += `<button onclick="listarUsuariosPorRol('${rol}','${listaId}','${paginacionId}', ${pagina + 1})">Siguiente</button>`;
-            }
-
-        } catch (error) {
-            console.error("Error:", error);
-            lista.innerHTML = "<p>Error al cargar usuarios.</p>";
-        }
-    }
-
-    // Abrir modal edición
-    window.abrirEditarUsuario = function (id, nombre, apellido, cedula, placa, rol) {
-        document.getElementById("editUsuarioId").value = id;
-        document.getElementById("editNombre").value = nombre;
-        document.getElementById("editApellido").value = apellido;
-        document.getElementById("editCedula").value = cedula;
-        document.getElementById("editPlaca").value = placa;
-        // guardar rol como atributo del modal
-        const modal = document.getElementById("editarModal");
-        if (modal) modal.dataset.rol = rol || "";
-        // si existe un input hidden con id="editRol", actualizarlo también
-        const editRolInput = document.getElementById("editRol");
-        if (editRolInput) editRolInput.value = rol || "";
-        if (modal) modal.style.display = "block";
-    };
-
-    // Cerrar modal edición
-    window.cerrarEditarModal = function () {
-        document.getElementById("editarModal").style.display = "none";
-    };
-
-    // Guardar cambios edición
-    document.getElementById("editarUsuarioForm")?.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const id = document.getElementById("editUsuarioId").value;
-        const usuarioData = {
-            nombre: document.getElementById("editNombre").value,
-            apellido: document.getElementById("editApellido").value,
-            cedula: document.getElementById("editCedula").value,
-            placaVehiculo: document.getElementById("editPlaca").value
-        };
-
-        // decidir endpoint según rol almacenado en el modal o input hidden
-        const modal = document.getElementById("editarModal");
-        const rol = (document.getElementById("editRol")?.value) || (modal?.dataset?.rol) || "";
-        const isVisitante = rol === "visitante";
-        const url = isVisitante ? `http://localhost:5000/api/visitantes/editarVisitante/${id}` : `http://localhost:5000/api/usuarios/${id}`;
-
-        try {
-            const response = await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                },
-                body: JSON.stringify(usuarioData)
-            });
-
-            const data = await response.json().catch(()=>null);
-            if (!response.ok) {
-                console.error("Error al editar:", response.status, data);
-                return alert("❌ Error al editar: " + (data?.msg || data?.error || data?.mensaje || `HTTP ${response.status}`));
-            }
-
-            alert("✅ Usuario/Visitante actualizado");
-            cerrarEditarModal();
-            // refrescar listas relevantes
-            listarUsuariosPorRol("residente","listaResidentes","paginacionResidentes");
-            listarUsuariosPorRol("visitante","listaVisitantes","paginacionVisitantes");
-            listarUsuariosPorRol("porteria","listaPorteros","paginacionPorteros");
-            // si hay vista de residente abierta, recargar visitantes
-            if (typeof cargarVisitantes === "function") cargarVisitantes();
-        } catch (error) {
-            console.error("Error:", error);
-            alert("❌ No se pudo actualizar el usuario/visitante");
-        }
-    });
-
-    // Eliminar usuario
-    window.eliminarUsuario = async function (id) {
-        if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
-        try {
-            const response = await fetch(`http://localhost:5000/api/usuarios/${id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-            if (!response.ok) throw new Error("Error al eliminar");
-            alert("✅ Usuario eliminado");
-            listarUsuariosPorRol("residente","listaResidentes","paginacionResidentes");
-            listarUsuariosPorRol("visitante","listaVisitantes","paginacionVisitantes");
-            listarUsuariosPorRol("porteria","listaPorteros","paginacionPorteros");
-        } catch (error) {
-            console.error("Error:", error);
-            alert("❌ No se pudo eliminar");
-        }
-    };
-// ---------------- ELIMINAR VISITANTE ADMIN/PORTERIA ----------------
-window.eliminarVisitanteAdmin = async function (visitanteId) {
-    if (!confirm("¿Seguro que deseas eliminar este visitante?")) return;
-    try {
-        const response = await fetch(`http://localhost:5000/api/visitantes/${visitanteId}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        const data = await response.json();
-        if (response.ok) {
-            alert("✅ Visitante eliminado");
-            listarUsuariosPorRol("visitante","listaVisitantes","paginacionVisitantes");
-        } else {
-            alert("❌ Error: " + (data.msg || data.mensaje || "No se pudo eliminar"));
-        }
-    } catch (error) {
-        console.error("Error al eliminar visitante admin:", error);
-    }
-};
 
     // ---------------- MOSTRAR SECCIÓN SEGÚN ROL ----------------
     function mostrarSeccion(seccion) {
