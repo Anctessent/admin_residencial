@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Administrador - Administración Residencial</title>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Administración Residencial - Administrador</h1>
+  </header>
+
+  <!-- PANEL ADMINISTRADOR -->
+  <section id="administrador" class="container">
+    <h2 class="titulo-seccion">Panel de Administrador</h2>
+    <form id="registerForm" class="card-form">
+      <h3>Registrar Usuario</h3>
+      <label>Nombre:</label><input type="text" name="nombre" required />
+      <label>Apellido:</label><input type="text" name="apellido" required />
+      <label>Cédula:</label><input type="text" name="cedula" required />
+      <label>Apartamento:</label><input type="text" name="apartamento" />
+      <label>Torre:</label><input type="text" name="torre" />
+      <label>Estado de Expensa:</label>
+      <select name="expensa">
+        <option value="al_dia">Al Día</option>
+        <option value="en_mora">En Mora</option>
+        <option value="no_aplica">No Aplica</option>
+      </select>
+      <label>¿Vehículo?</label>
+      <select name="tieneVehiculo">
+        <option value=1>Sí</option>
+        <option value=0>No</option>
+      </select>
+      <label>Placa del Vehículo:</label><input type="text" name="placaVehiculo" />
+      <div id="passwordField">
+        <label for="registerPassword">Contraseña:</label>
+        <input type="password" id="registerPassword" name="password" required />
+      </div>
+      <div>
+        <label for="registerRol">Rol:</label>
+        <select id="registerRol" name="rol" required>
+          <option value="residente">Residente</option>
+          <option value="visitante">Visitante</option>
+          <option value="porteria">Portería</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-azul">Registrar</button>
+      <button type="button" class="btn-gris"
+        onclick="window.location.href='https://app.powerbi.com/view?r=eyJrIjoiODljZDA0YjEtNjY2Ny00ZTdiLWFlYmYtOWMyNzRlODVhNDI1IiwidCI6IjlkMTJiZjNmLWU0ZjYtNDdhYi05MTJmLTFhMmYwZmM0OGFhNCIsImMiOjR9';">
+        Ver Reporte Power BI
+      </button>
+    </form>
+    <button class="btn-rojo" onclick="volverAlLogin()">Cerrar Sesión</button>
+  </section>
+
+  <!-- LISTADOS -->
+  <section id="listarResidentes" class="container">
+    <h3>Listado de Residentes</h3>
+    <div id="listaResidentes" class="lista"></div>
+    <div id="paginacionResidentes" class="paginacion"></div>
+  </section>
+
+  <section id="listarVisitantes" class="container">
+    <h3>Listado de Visitantes</h3>
+    <div id="listaVisitantes" class="lista"></div>
+    <div id="paginacionVisitantes" class="paginacion"></div>
+  </section>
+
+  <section id="listarPorteros" class="container">
+    <h3>Listado de Porteros</h3>
+    <div id="listaPorteros" class="lista"></div>
+    <div id="paginacionPorteros" class="paginacion"></div>
+  </section>
+
+  <!-- MODAL EDITAR -->
+  <div id="editarModal" class="modal">
+    <div class="modal-content">
+      <span class="cerrar" onclick="cerrarEditarModal()">&times;</span>
+      <h3>Editar Usuario</h3>
+      <form id="editarUsuarioForm">
+        <input type="hidden" id="editUsuarioId">
+        <label>Nombre:</label><input type="text" id="editNombre" required />
+        <label>Apellido:</label><input type="text" id="editApellido" required />
+        <label>Cédula:</label><input type="text" id="editCedula" required />
+        <label>Placa Vehículo:</label><input type="text" id="editPlaca" />
+        <button type="submit" class="btn-azul">Guardar Cambios</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="usuarios-admin.js"></script>
+
+  <script>
+    // Nueva función genérica para eliminar
+    async function eliminarEntidad(id, tipo) {
+      if (!confirm("¿Seguro que deseas eliminar este " + tipo + "?")) return;
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/usuarios/${id}/${tipo}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert("✅ Eliminado correctamente");
+          location.reload(); // recargar listas
+        } else {
+          alert("❌ Error: " + (data.error || "No se pudo eliminar"));
+        }
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+      }
+    }
+
+    // Mostrar/ocultar contraseña según rol
+    const rolSelect = document.getElementById("registerRol");
+    const passwordInput = document.getElementById("registerPassword");
+    const passwordField = document.getElementById("passwordField");
+
+    function togglePasswordRequired() {
+      if (rolSelect.value === "visitante") {
+        passwordInput.required = false;
+        passwordField.style.display = "none";
+      } else {
+        passwordInput.required = true;
+        passwordField.style.display = "block";
+      }
+    }
+
+    // Inicializar y escuchar cambios
+    togglePasswordRequired();
+    rolSelect.addEventListener("change", togglePasswordRequired);
+  </script>
+</body>
+</html>

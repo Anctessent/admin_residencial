@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Portería - Administración Residencial</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Encabezado -->
+  <header>
+    <h1>Administración Residencial - Portería</h1>
+  </header>
+
+  <!-- Contenedor -->
+  <div class="container">
+    <!-- Panel Portería en formato card -->
+    <div class="card-form">
+      <h3 class="mb-3">Registrar Usuario</h3>
+      <form id="registerForm">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required />
+
+        <label>Apellido:</label>
+        <input type="text" name="apellido" required />
+
+        <label>Cédula:</label>
+        <input type="text" name="cedula" required />
+
+        <label>Apartamento:</label>
+        <input type="text" name="apartamento" required />
+
+        <label>Torre:</label>
+        <input type="text" name="torre" required />
+
+        <label>Fecha de Registro:</label>
+        <input type="date" name="fechaRegistro" required />
+
+        <label for="registerPassword">Contraseña:</label>
+        <input type="password" id="registerPassword" name="password" required />
+
+        <label>Placa del Vehículo:</label>
+        <input type="text" name="placaVehiculo" />
+
+        <label for="registerRol">Rol:</label>
+        <select id="registerRol" name="rol" required>
+          <option value="residente">Residente</option>
+          <option value="visitante">Visitante</option>
+        </select>
+
+        <button type="submit" class="btn-azul">Registrar</button>
+      </form>
+    </div>
+
+    <!-- Botón cerrar sesión -->
+    <div class="text-center">
+      <button class="btn-rojo" onclick="volverAlLogin()">Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

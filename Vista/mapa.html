@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa Parqueaderos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #181818;
+      color: #f1f1f1;
+      transition: background 0.3s, color 0.3s;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 400px;
+      margin: auto;
+    }
+    .plaza {
+      width: 100px;
+      height: 80px;
+      margin: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 8px;
+      color: white;
+      box-shadow: 0 2px 8px #0004;
+      transition: background 0.3s;
+      font-size: 14px;
+    }
+    .DISPONIBLE { background: #2ecc40; }
+    .OCUPADO { background: #e74c3c; }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #222;
+      color: #f1f1f1;
+      border: 1px solid #444;
+      border-radius: 5px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .modo-claro {
+      background: #f1f1f1;
+      color: #181818;
+    }
+    .modo-claro button {
+      background: #fff;
+      color: #181818;
+      border: 1px solid #bbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mapa de Parqueaderos</h1>
+  <button onclick="toggleModo()">🌙/☀️ Modo Oscuro/Claro</button>
+  <div id="grid" class="grid"></div>
+
+  <script>
+    async function cargar() {
+      const res = await fetch('http://localhost:5000/api/parqueaderos');
+      const plazas = await res.json();
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+
+      plazas.forEach(p => {
+  const div = document.createElement('div');
+  div.className = `plaza ${p.estado}`;
+
+  let content = `<div>#${p.numero}</div>`;
+
+  // Si está ocupada y tiene visitante, mostrar placa
+  if (p.estado === 'OCUPADO' && p.visitante) {
+    content += `<div style="font-size:12px;">${p.visitante.placaVehiculo}</div>`;
+  }
+
+  div.innerHTML = content;
+  grid.appendChild(div);
+});
+    }
+
+    function toggleModo() {
+      document.body.classList.toggle('modo-claro');
+    }
+
+    cargar();
+    setInterval(cargar, 3000);
+  </script>
+</body>
+</html>

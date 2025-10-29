@@ -1,0 +1,29 @@
+{
+  "name": "admin-residencial",
+  "version": "1.0.0",
+  "description": "Sistema de administración residencial con Node.js, Express y MongoDB.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "author": "Gabriel Eduardo Borre Márquez",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.0",
+    "node-fetch": "^3.3.2",
+    "xss-clean": "^0.1.4"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Actualizar Placa - Administración Residencial</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Encabezado -->
+  <header>
+    <h1>Administración Residencial - Actualizar Placa</h1>
+  </header>
+
+  <!-- Contenedor -->
+  <div class="container">
+    <!-- Panel Portería -->
+    <section id="Vistaporteriaactualizar">
+      <h2 class="mb-3">Panel Portería</h2>
+
+      <hr />
+
+      <!-- Botones principales -->
+      <div class="mb-3">
+        <button class="btn-azul" onclick="listarUsuarios()">Listar Usuarios</button>
+        <button class="btn-gris" onclick="mostrarFormularioActualizar()">Actualizar Placa</button>
+        <button class="btn-rojo" onclick="volverAlLogin()">Cerrar Sesión</button>
+      </div>
+
+      <!-- Lista de Usuarios -->
+      <div id="listaUsuarios" class="lista"></div>
+      <div id="paginacionUsuarios" style="margin-top:10px; text-align:center;"></div>
+
+      <!-- Formulario Actualizar Placa -->
+      <div id="formActualizarPlaca" class="card-form" style="display:none; margin-top:20px;">
+        <h3 class="mb-3">Actualizar Placa de Usuario</h3>
+        <label for="buscarCedula">Cédula:</label>
+        <input type="text" id="buscarCedula" />
+
+        <label for="nuevaPlaca">Nueva Placa:</label>
+        <input type="text" id="nuevaPlaca" />
+
+        <button class="btn-azul" onclick="actualizarPlaca()">Actualizar</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let usuarios = [];
+    let paginaActual = 1;
+    const usuariosPorPagina = 20;
+    let totalPaginas = 1;
+
+    async function listarUsuarios(pagina = 1) {
+      const lista = document.getElementById("listaUsuarios");
+      const paginacion = document.getElementById("paginacionUsuarios");
+      lista.innerHTML = "<h3>Usuarios Registrados</h3>";
+      paginacion.innerHTML = "";
+
+      try {
+        const response = await fetch("http://localhost:5000/api/usuarios", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        if (!response.ok) throw new Error("Error al obtener usuarios");
+
+        const data = await response.json();
+
+        if (data.count === 0) {
+          lista.innerHTML += "<p>No hay usuarios registrados.</p>";
+          return;
+        }
+
+        usuarios = data.data;
+        totalPaginas = Math.ceil(usuarios.length / usuariosPorPagina);
+        paginaActual = pagina;
+
+        const inicio = (paginaActual - 1) * usuariosPorPagina;
+        const fin = inicio + usuariosPorPagina;
+        const usuariosPagina = usuarios.slice(inicio, fin);
+
+        usuariosPagina.forEach(user => {
+          lista.innerHTML += `
+            <div class="usuario-item">
+              <strong>${user.nombre} ${user.apellido}</strong> 
+              - Cédula: ${user.cedula}, 
+              Placa: ${user.placaVehiculo || "N/A"}
+            </div>`;
+        });
+
+        if (paginaActual > 1) {
+          paginacion.innerHTML += `<button class="btn-gris-sm" onclick="listarUsuarios(${paginaActual - 1})">Anterior</button>`;
+        }
+        paginacion.innerHTML += ` Página ${paginaActual} de ${totalPaginas} `;
+        if (paginaActual < totalPaginas) {
+          paginacion.innerHTML += `<button class="btn-gris-sm" onclick="listarUsuarios(${paginaActual + 1})">Siguiente</button>`;
+        }
+      } catch (error) {
+        console.error("Error al listar usuarios:", error);
+        lista.innerHTML += "<p>Error al obtener usuarios.</p>";
+      }
+    }
+
+    function mostrarFormularioActualizar() {
+      document.getElementById("formActualizarPlaca").style.display = "block";
+    }
+
+    function actualizarPlaca() {
+      const cedula = document.getElementById("buscarCedula").value;
+      const nuevaPlaca = document.getElementById("nuevaPlaca").value;
+      const usuario = usuarios.find(u => u.cedula === cedula);
+
+      if (usuario) {
+        usuario.placaVehiculo = nuevaPlaca;
+        fetch(`http://localhost:5000/api/usuarios/${usuario._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          },
+          body: JSON.stringify({ placaVehiculoNueva: nuevaPlaca })
+        })
+        .then(response => {
+          if (!response.ok) throw new Error("Error al actualizar");
+          alert("Placa actualizada correctamente.");
+          listarUsuarios();
+        })
+        .catch(error => {
+          alert("Error al actualizar la placa.");
+          console.error(error);
+        });
+      } else {
+        alert("Usuario no encontrado.");
+      }
+    }
+
+    function volverAlLogin() {
+      alert("Sesión cerrada");
+      location.reload();
+    }
+  </script>
+</body>
+</html>
