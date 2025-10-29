@@ -1,0 +1,60 @@
+# ============================
+# 🚫 Archivos sensibles
+# ============================
+.env
+*.env
+
+# ============================
+# 🧠 Modelos de IA o binarios
+# ============================
+*.pt
+*.h5
+*.weights
+*.onnx
+
+# ============================
+# 🧱 Dependencias
+# ============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================
+# 🧰 Archivos del sistema
+# ============================
+.DS_Store
+Thumbs.db
+
+# ============================
+# 🧑‍💻 Compilaciones temporales
+# ============================
+dist/
+build/
+coverage/
+.tmp/
+.cache/
+
+# ============================
+# 📦 Archivos de despliegue
+# ============================
+*.tgz
+*.zip
+*.tar
+*.tar.gz
+
+# ============================
+# 🧩 Configuración del editor
+# ============================
+.vscode/
+.idea/
+*.swp
+
+# ============================
+# 🧰 Logs y salidas
+# ============================
+logs/
+*.log
+*.out
+*.pid
+npm-debug.log*
